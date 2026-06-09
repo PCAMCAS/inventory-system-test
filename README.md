@@ -26,7 +26,7 @@ La práctica se centra en la pirámide de testing:
 
 | Comando | Resultado |
 |---------|-----------|
-| `npm test -- --run` | 30 tests passed |
+| `npm test -- --run` | 34 tests passed |
 | `npm run test:coverage` | 100% cobertura en `product-utils.ts` |
 | `npm run e2e` | 3 tests E2E passed |
 
@@ -40,6 +40,7 @@ La práctica se centra en la pirámide de testing:
 - Tests unitarios de lógica de inventario.
 - Tests del store de Zustand.
 - Tests de componente con una lista de productos.
+- Tests específicos del filtro de categorías `CategoryFilter`.
 - Tests de integración sobre API Routes.
 - Configuración de Playwright.
 - Tests E2E sobre flujos reales de usuario.
@@ -163,20 +164,29 @@ Se ha añadido el componente:
 
 ~~~txt
 src/components/ProductList.tsx
+src/components/CategoryFilter.tsx
 ~~~
 
 Y su test:
 
 ~~~txt
 src/components/product-list.test.tsx
+src/components/category-filter.test.tsx
 ~~~
 
-Se comprueba:
+Se comprueba en `ProductList`:
 
 - Estado de carga.
 - Renderizado de productos recibidos desde `/api/products`.
 - Estado de error.
 - Botón de reintento.
+
+Se comprueba en `CategoryFilter`:
+
+- Renderizado de todas las categorías.
+- Categoría seleccionada por props.
+- Cambio de categoría.
+- Reseteo a todas las categorías.
 
 Para estos tests se usa MSW, evitando depender de una API real.
 
@@ -271,7 +281,7 @@ npm run e2e
 
 ~~~txt
 Test Files  5 passed
-Tests       30 passed
+Tests       34 passed
 
 Coverage:
 product-utils.ts 100%
@@ -535,7 +545,7 @@ Tras corregir estos problemas, la práctica quedó estable:
 
 ~~~txt
 npm test -- --run
-30 tests passed
+34 tests passed
 
 npm run test:coverage
 100% coverage en product-utils.ts
@@ -544,3 +554,35 @@ npm run e2e
 3 tests passed
 ~~~
 
+
+
+---
+
+### 9. Faltaba cubrir CategoryFilter explícitamente
+
+Al revisar el enunciado de nuevo, se detectó que el entregable mencionaba de forma literal tests de `ProductList` y `CategoryFilter`.
+
+Aunque el filtrado por categoría ya estaba cubierto en los tests E2E, faltaba un test unitario/de componente específico para `CategoryFilter`.
+
+**Solución aplicada:**
+
+Se creó el componente:
+
+~~~txt
+src/components/CategoryFilter.tsx
+~~~
+
+Y su test:
+
+~~~txt
+src/components/category-filter.test.tsx
+~~~
+
+Los tests comprueban:
+
+- Que se muestran todas las categorías.
+- Que se marca correctamente la categoría seleccionada.
+- Que `onSelectCategory` se llama al cambiar de categoría.
+- Que seleccionar “Todas las categorías” devuelve `null`.
+
+Con esto el entregable queda alineado también con la parte literal que pide tests de `ProductList` y `CategoryFilter`.
