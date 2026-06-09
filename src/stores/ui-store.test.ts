@@ -1,16 +1,10 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
-import { useUIStore } from "@/stores/ui-store";
+import { initialUIState, useUIStore } from "@/stores/ui-store";
 
 describe("useUIStore", () => {
   beforeEach(() => {
-    useUIStore.setState({
-      searchQuery: "",
-      selectedCategoryId: null,
-      sortBy: "createdAt",
-      sortOrder: "desc",
-      sidebarOpen: true
-    });
+    useUIStore.setState(initialUIState);
   });
 
   it("el estado inicial tiene searchQuery vacío y ninguna categoría seleccionada", () => {

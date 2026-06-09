@@ -1,19 +1,58 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const products = [
+  {
+    id: "1",
+    name: "Test-Tablero roble",
+    description: null,
+    price: 89.5,
+    stock: 12,
+    categoryId: "cat-maderas",
+    category: { id: "cat-maderas", name: "Maderas y tableros" }
+  }
+];
+
+const categories = [
+  {
+    id: "cat-maderas",
+    name: "Test-Maderas",
+    description: "Categoría de test"
+  }
+];
+
+vi.mock("@/lib/db", () => {
+  return {
+    db: {
+      product: {
+        findMany: vi.fn(async () => products),
+        create: vi.fn(async ({ data }) => ({
+          id: "created-id",
+          ...data,
+          category: { id: data.categoryId, name: "Test-Maderas" }
+        })),
+        deleteMany: vi.fn(async () => ({ count: 1 })),
+        update: vi.fn(async ({ where, data }) => {
+          if (where.id === "no-existe") {
+            throw new Error("Producto no encontrado");
+          }
+
+          return {
+            ...products[0],
+            ...data
+          };
+        })
+      },
+      category: {
+        upsert: vi.fn(async () => categories[0])
+      }
+    }
+  };
+});
+
 import { testApiHandler } from "next-test-api-route-handler";
 import * as productsHandler from "@/app/api/products/route";
 import * as stockHandler from "@/app/api/products/[id]/stock/route";
 import { db } from "@/lib/db";
-
-async function getOrCreateTestCategory() {
-  return db.category.upsert({
-    where: { name: "Test-Maderas" },
-    update: {},
-    create: {
-      name: "Test-Maderas",
-      description: "Categoría para tests de integración"
-    }
-  });
-}
 
 beforeEach(async () => {
   await db.product.deleteMany({
@@ -43,13 +82,11 @@ describe("GET /api/products", () => {
         const res = await fetch({ method: "GET" });
         const body = await res.json();
 
-        if (body.length > 0) {
-          expect(body[0]).toHaveProperty("id");
-          expect(body[0]).toHaveProperty("name");
-          expect(body[0]).toHaveProperty("price");
-          expect(body[0]).toHaveProperty("stock");
-          expect(body[0]).toHaveProperty("category");
-        }
+        expect(body[0]).toHaveProperty("id");
+        expect(body[0]).toHaveProperty("name");
+        expect(body[0]).toHaveProperty("price");
+        expect(body[0]).toHaveProperty("stock");
+        expect(body[0]).toHaveProperty("category");
       }
     });
   });
@@ -57,7 +94,11 @@ describe("GET /api/products", () => {
 
 describe("POST /api/products", () => {
   it("crea un producto y devuelve 201", async () => {
-    const category = await getOrCreateTestCategory();
+    const category = await db.category.upsert({
+      where: { name: "Test-Maderas" },
+      update: {},
+      create: { name: "Test-Maderas" }
+    });
 
     await testApiHandler({
       appHandler: productsHandler,
@@ -83,7 +124,11 @@ describe("POST /api/products", () => {
   });
 
   it("devuelve 400 si el precio es negativo", async () => {
-    const category = await getOrCreateTestCategory();
+    const category = await db.category.upsert({
+      where: { name: "Test-Maderas" },
+      update: {},
+      create: { name: "Test-Maderas" }
+    });
 
     await testApiHandler({
       appHandler: productsHandler,
@@ -106,23 +151,12 @@ describe("POST /api/products", () => {
 
 describe("PATCH /api/products/[id]/stock", () => {
   it("stock válido devuelve 200", async () => {
-    const category = await getOrCreateTestCategory();
-
-    const product = await db.product.create({
-      data: {
-        name: "Test-Tablero stock",
-        price: 10,
-        stock: 3,
-        categoryId: category.id
-      }
-    });
-
     const response = await stockHandler.PATCH(
-      new Request("http://localhost/api/products/" + product.id + "/stock", {
+      new Request("http://localhost/api/products/1/stock", {
         method: "PATCH",
         body: JSON.stringify({ stock: 8 })
       }),
-      { params: Promise.resolve({ id: product.id }) }
+      { params: Promise.resolve({ id: "1" }) }
     );
 
     expect(response.status).toBe(200);

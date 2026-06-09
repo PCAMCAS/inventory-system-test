@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 type SortField = "name" | "price" | "stock" | "createdAt";
 type SortOrder = "asc" | "desc";
@@ -18,7 +17,7 @@ interface UIState {
   resetFilters: () => void;
 }
 
-const initialState = {
+export const initialUIState = {
   searchQuery: "",
   selectedCategoryId: null,
   sortBy: "createdAt" as SortField,
@@ -26,26 +25,18 @@ const initialState = {
   sidebarOpen: true
 };
 
-export const useUIStore = create<UIState>()(
-  persist(
-    (set) => ({
-      ...initialState,
-      setSearchQuery: (searchQuery) => set({ searchQuery }),
-      selectCategory: (selectedCategoryId) => set({ selectedCategoryId }),
-      setSortBy: (sortBy) => set({ sortBy }),
-      setSortOrder: (sortOrder) => set({ sortOrder }),
-      toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
-      resetFilters: () =>
-        set({
-          searchQuery: initialState.searchQuery,
-          selectedCategoryId: initialState.selectedCategoryId,
-          sortBy: initialState.sortBy,
-          sortOrder: initialState.sortOrder
-        })
-    }),
-    {
-      name: "inventory-ui",
-      partialize: (state) => ({ sidebarOpen: state.sidebarOpen })
-    }
-  )
-);
+export const useUIStore = create<UIState>((set) => ({
+  ...initialUIState,
+  setSearchQuery: (searchQuery) => set({ searchQuery }),
+  selectCategory: (selectedCategoryId) => set({ selectedCategoryId }),
+  setSortBy: (sortBy) => set({ sortBy }),
+  setSortOrder: (sortOrder) => set({ sortOrder }),
+  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+  resetFilters: () =>
+    set({
+      searchQuery: initialUIState.searchQuery,
+      selectedCategoryId: initialUIState.selectedCategoryId,
+      sortBy: initialUIState.sortBy,
+      sortOrder: initialUIState.sortOrder
+    })
+}));

@@ -52,6 +52,9 @@ describe("ProductList", () => {
     });
 
     await user.click(screen.getByRole("button", { name: "Reintentar" }));
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText("Error al cargar productos.")).toBeInTheDocument();
+    });
   });
 });

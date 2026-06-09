@@ -23,11 +23,7 @@ export function sortProducts(
     const aValue = a[sortBy];
     const bValue = b[sortBy];
 
-    if (sortBy === "price") {
-      return (Number(aValue) - Number(bValue)) * direction;
-    }
-
-    if (sortBy === "stock") {
+    if (sortBy === "price" || sortBy === "stock") {
       return (Number(aValue) - Number(bValue)) * direction;
     }
 
@@ -43,5 +39,7 @@ export function formatPrice(price: number | string): string {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
     currency: "EUR"
-  }).format(Number(price));
+  })
+    .format(Number(price))
+    .replace(/\u00A0/g, " ");
 }
